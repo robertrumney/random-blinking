@@ -4,17 +4,26 @@ using System.Collections;
 public class BlinkRandomly : MonoBehaviour
 {
     SkinnedMeshRenderer skinnedMeshRenderer;
+    
+    // Index of the blend shape that controls the left eye blink
+    private readonly int blinkShapeIndex = 10;  
+    
+    // Index of the blend shape that controls the right eye blink
+    private readonly int blinkShapeIndex2 = 11; 
 
-    readonly int blinkShapeIndex = 10;  // Index of the blend shape that controls the left eye blink
-    readonly int blinkShapeIndex2 = 11; // Index of the blend shape that controls the right eye blink
+    // Speed at which the eyes blink
+    private float blinkSpeed = 100f;     
+    
+    // Time between blinks
+    private float blinkInterval = 1f;         
+    
+    // Target value for the blend shape weight
+    private float targetBlendValue;           
 
-    float blinkSpeed = 100f;           // Speed at which the eyes blink
-    float blinkInterval = 1f;          // Time between blinks
-    float targetBlendValue;            // Target value for the blend shape weight
+    // Whether or not the character is currently blinking
+    private bool isBlinking = false;           
 
-    bool isBlinking = false;           // Whether or not the character is currently blinking
-
-    IEnumerator Start()
+    private IEnumerator Start()
     {
         // Get the SkinnedMeshRenderer component on the current GameObject
         skinnedMeshRenderer = GetComponent<SkinnedMeshRenderer>();
@@ -40,18 +49,17 @@ public class BlinkRandomly : MonoBehaviour
 
             // Toggle the isBlinking flag
             isBlinking = !isBlinking;
-        }
-    
+        }   
     }
 
-    void Update()
+    private void Update()
     {
         // Smoothly transition between the open and closed states of the eyes
         skinnedMeshRenderer.SetBlendShapeWeight(blinkShapeIndex, Mathf.MoveTowards(skinnedMeshRenderer.GetBlendShapeWeight(blinkShapeIndex), targetBlendValue, Time.deltaTime * blinkSpeed));
         skinnedMeshRenderer.SetBlendShapeWeight(blinkShapeIndex2, Mathf.MoveTowards(skinnedMeshRenderer.GetBlendShapeWeight(blinkShapeIndex2), targetBlendValue, Time.deltaTime * blinkSpeed));
     }
 
-    void Blink()
+    private void Blink()
     {
         // Switch the target blend value between 0 and 100 to control the open and closed states of the eyes
         targetBlendValue = (targetBlendValue == 0f) ? 100f : 0f;
