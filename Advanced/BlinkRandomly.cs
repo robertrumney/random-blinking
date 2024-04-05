@@ -5,72 +5,59 @@ public class BlinkRandomly : MonoBehaviour
 {
     [SerializeField]
     private SkinnedMeshRenderer eye1;
-
     [SerializeField]
     private SkinnedMeshRenderer eye2;
 
-    // Index of the blend shape that controls the left eye blink
-    private readonly int blinkShapeIndex = 0;
-
-    // Index of the blend shape that controls the right eye blink
-    private readonly int blinkShapeIndex2 = 0;
-
-    // Speed at which the eyes blink
-    private float blinkSpeed = 200f;
-
-    // Time between blinks
-    private float blinkInterval = 1f;
-
-    // Target value for the blend shape weight
-    private float targetBlendValue;
-
-    // Whether or not the character is currently blinking
+    private readonly int blinkShapeIndex = 0; // Assuming both eyes use the same blink shape index
     private bool isBlinking = false;
+    private float timeSinceLastBlink = 0f;
+    private float nextBlinkTime = 0f;
 
-    private IEnumerator Start()
+    void Start()
     {
-        // Get the SkinnedMeshRenderer component on the current GameObject
-        if (!eye1 || !eye2)
+        SetNextBlinkTime();
+    }
+
+    void Update()
+    {
+        timeSinceLastBlink += Time.deltaTime;
+
+        if (timeSinceLastBlink >= nextBlinkTime && !isBlinking)
         {
-            Debug.Log("No skinned meshes assigned, please assign");
-            yield break;
-        }
-
-        targetBlendValue = 0f;
-
-        // Run this loop forever
-        while (true)
-        {
-            // If the character is blinking, set a random blink interval
-            if (isBlinking)
-                blinkInterval = Random.Range(1.0f, 5.0f);
-            else
-                blinkInterval = 0.2f;
-
-            // Set a random blink speed
-            blinkSpeed = Random.Range(500, 1000);
-
-            // Call the Blink function
-            Blink();
-
-            // Wait for the blink interval before continuing
-            yield return new WaitForSeconds(blinkInterval);
-
-            // Toggle the isBlinking flag
-            isBlinking = !isBlinking;
+            StartCoroutine(BlinkEyes());
+            SetNextBlinkTime(); // Prepare for the next blink
         }
     }
 
-    private void Update()
+    IEnumerator BlinkEyes()
     {
-        // Smoothly transition between the open and closed states of the eyes
-        eye1.SetBlendShapeWeight(blinkShapeIndex, Mathf.MoveTowards(eye1.GetBlendShapeWeight(blinkShapeIndex), targetBlendValue, Time.deltaTime * blinkSpeed));
-        eye2.SetBlendShapeWeight(blinkShapeIndex2, Mathf.MoveTowards(eye2.GetBlendShapeWeight(blinkShapeIndex2), targetBlendValue, Time.deltaTime * blinkSpeed));
+        isBlinking = true;
+        // Close the eyes quickly
+        for (float i = 0; i <= 100; i += Time.deltaTime * 2000)
+        {
+            eye1.SetBlendShapeWeight(blinkShapeIndex, i);
+            eye2.SetBlendShapeWeight(blinkShapeIndex, i);
+            yield return null;
+        }
+
+        // Keep the eyes closed for a brief moment
+        yield return new WaitForSeconds(0.05f);
+
+        // Open the eyes more slowly
+        for (float i = 100; i >= 0; i -= Time.deltaTime * 500)
+        {
+            eye1.SetBlendShapeWeight(blinkShapeIndex, i);
+            eye2.SetBlendShapeWeight(blinkShapeIndex, i);
+            yield return null;
+        }
+
+        isBlinking = false;
+        timeSinceLastBlink = 0f; // Reset the timer
     }
 
-    private void Blink()
+    void SetNextBlinkTime()
     {
-        // Switch the target blend value between 0 and 100 to control the open and closed states of the eyes
-        targetBlendValue = (targetBlendValue == 0f) ? 100f : 0f;
+        // Set the next blink time to a random value between 1 and 4 seconds.
+        nextBlinkTime = Random.Range(1f, 4f);
     }
 }
